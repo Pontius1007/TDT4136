@@ -133,59 +133,43 @@ class MinimaxAgent(MultiAgentSearchAgent):
         """
         "*** YOUR CODE HERE ***"
 
-        #
-        def minimax_decision(game_state, index, depth):
-            max_v = float("-inf")
-            legal_actions = game_state.getLegalActions(index)
-            best_move = Directions.STOP
-            for action in legal_actions:
-                temp_score = max_v
-                next_move = game_state.generateSuccessor(index, action)
-                max_v = min_value(next_move, index + 1, depth)
-                if max_v > temp_score:
-                    best_move = action
+        # Index will be 0 in this case, simulating pacman
+        max_v = float('-inf')
+        legal_actions = gameState.getLegalActions(0)
+        best_move = Directions.STOP
+        for action in legal_actions:
+            move_value = self.min_value(gameState.generateSuccessor(0, action), 1, 0)
+            if move_value > max_v:
+                max_v = move_value
+                best_move = action
 
-            return best_move
+        # Returns the final move
+        return best_move
 
-        def max_value(game_state, index, depth):
-            if game_state.isWin() or game_state.isLose() or depth == 0:
-                return self.evaluationFunction(game_state)
+    def max_value(self, gameState, depth):
+        # Index will always be 0 in this case as it is Pacman that will be maximizing
+        if gameState.isWin() or gameState.isLose() or depth == self.depth:
+            return self.evaluationFunction(gameState)
 
-            # Circular looping through agents
-            index %= (game_state.getNumAgents() - 1)
+        # Pass on the highest scoring action
+        return max(
+            [self.min_value(gameState.generateSuccessor(0, action), 1, depth) for action in gameState.getLegalActions(0)])
 
-            max_v = float('-inf')
-            legal_actions = game_state.getLegalActions(index)
+    def min_value(self, gameState, index, depth):
+        # Ghosts will be trying to minimize the value
+        if gameState.isWin() or gameState.isLose() or depth == self.depth:
+            return self.evaluationFunction(gameState)
 
-            # Pass on the highest scoring action
-            for action in legal_actions:
-                successor = game_state.generateSuccessor(index, action)
-                max_v = max(max_v, min_value(successor, index + 1, depth))
-            return max_v
+        # If this is the last agent, move one more step into the tree and collect
+        # the pacman max B-)
+        if index < gameState.getNumAgents() - 1:
+            return min([self.min_value(gameState.generateSuccessor(index, action), index + 1, depth) for action in
+                        gameState.getLegalActions(index)])
 
-        def min_value(game_state, index, depth):
-            if game_state.isWin() or game_state.isLose() or depth == 0:
-                return self.evaluationFunction(game_state)
-
-            min_v = float('inf')
-            legal_actions = game_state.getLegalActions(index)
-
-            # If this is the last agent, move one more step into the tree and collect
-            # the pacman max B-)
-            if index + 1 == game_state.getNumAgents():
-                for action in legal_actions:
-                    successor = game_state.generateSuccessor(index, action)
-                    min_v = min(min_v, max_value(successor, index, depth - 1))
-
-            # Otherwise, keep going through agents and collect their minimum value
-            else:
-                for action in legal_actions:
-                    successor = game_state.generateSuccessor(index, action)
-                    min_v = min(min_v, min_value(successor, index + 1, depth))
-
-            return min_v
-
-        return minimax_decision(gameState, self.index, self.depth)
+        # Otherwise, keep going through agents and collect their minimum value
+        else:
+            return min([self.max_value(gameState.generateSuccessor(index, action), depth + 1) for action in
+                        gameState.getLegalActions(index)])
 
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
