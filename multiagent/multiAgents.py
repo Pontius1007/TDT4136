@@ -132,6 +132,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
         #
         def minimax_decision(gameState, index, depth):
+            numberOfGhosts = gameState.getNumAgents()-1
             maxScore = float("-inf")
             legalActions = gameState.getLegalActions(index)
             for action in legalActions:
@@ -146,10 +147,14 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
             return None
 
-        def max_value():
+        def max_value(gameState, index, depth):
+            if gameState.isWin() or gameState.isLose() or depth == 0:
+                return self.evaluationFunction(gameState)
             return None
 
         def min_value(gameState, index, depth):
+            if gameState.isWin() or gameState.isLose() or depth == 0:
+                return self.evaluationFunction(gameState)
             return None
 
         return minimax_decision(gameState, self.index, self.depth)
