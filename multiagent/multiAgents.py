@@ -183,7 +183,58 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
         "*** YOUR CODE HERE ***"
 
-        util.raiseNotDefined()
+        alpha = float('-inf')
+        beta = float('inf')
+
+        action_v = float('-inf')
+        action_max = None
+        for action in gameState.getLegalActions(0):
+            action_v = self.min_value(gameState.generateSuccessor(0, action), 1, 0, alpha, beta)
+            if alpha < action_v:
+                alpha = action_v
+                action_max = action
+        return action_max
+
+    def min_value(self, game_state, index, depth, alpha, beta):
+        """ For Min agents best move """
+
+        if len(game_state.getLegalActions(index)) == 0:
+            return self.evaluationFunction(game_state)
+
+        action_v = float('inf')
+        for action in game_state.getLegalActions(index):
+            # currently on last ghost
+            if index < game_state.getNumAgents() - 1:
+                action_v = min(action_v,
+                               self.min_value(game_state.generateSuccessor(index, action), index + 1,
+                                              depth, alpha, beta))
+            else:
+                action_v = min(action_v,
+                               self.max_value(game_state.generateSuccessor(index, action), depth + 1,
+                                              alpha, beta))
+
+            if action_v < alpha:
+                return action_v
+            beta = min(beta, action_v)
+
+        return action_v
+
+    def max_value(self, game_state, depth, alpha, beta):
+        """For Max agents best move"""
+
+        if depth == self.depth or len(game_state.getLegalActions(0)) == 0:
+            return self.evaluationFunction(game_state)
+
+        action_v = float('-inf')
+        for action in game_state.getLegalActions(0):
+            action_v = max(action_v,
+                           self.min_value(game_state.generateSuccessor(0, action), 1, depth, alpha, beta))
+
+            if action_v > beta:
+                return action_v
+            alpha = max(alpha, action_v)
+
+        return action_v
 
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
